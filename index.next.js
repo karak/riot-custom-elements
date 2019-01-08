@@ -56,6 +56,10 @@ function createStyleNode(css) {
 // call a lifecycle method only if it exists
 const callLifecycleMethod = (context, args, fn) => fn && fn.apply(context, args)
 
+function isFunction(options) {
+  return Object.prototype.toString.call(options) === '[object Function]'
+}
+
 /**
  * Create a new custom element using the riot core components
  * @param   {string} name - custom component tag name
@@ -67,7 +71,7 @@ const callLifecycleMethod = (context, args, fn) => fn && fn.apply(context, args)
 export default function define(name, api, options, constructor) {
   if (!constructor) {
     // decide the 3rd argument is options or constructor
-    if (Object.prototype.toString.call(options) === '[object Function]') {
+    if (isFunction(options)) {
       constructor = options
       options = undefined
     }
