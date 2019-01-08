@@ -95,4 +95,39 @@ describe('@riotjs/custom-elements', function() {
     document.body.appendChild(el)
     expect(window.getComputedStyle(el).color).to.be.equal('rgb(255, 0, 0)')
   })
+
+  it('can accept constructor', function() {
+    const name = tmpTagName()
+    define(
+      name,
+      {
+        tmpl: '<p>{ message }</p>',
+        data: { message: 'hello' }
+      },
+      {},
+      function() {
+        this.message = `${this.opts.message}, world!`
+      }
+    )
+
+    const el = document.createElement(name)
+    document.body.appendChild(el)
+    expect(el.tag.message).to.be.equal('hello, world!')
+  })
+
+  it('can accept constructor on the 3rd argument', function() {
+    const name = tmpTagName()
+    const constructor = sinon.spy()
+    define(
+      name,
+      {
+        tmpl: ''
+      },
+      constructor
+    )
+
+    const el = document.createElement(name)
+    document.body.appendChild(el)
+    expect(constructor).to.have.been.calledOnce
+  })
 })

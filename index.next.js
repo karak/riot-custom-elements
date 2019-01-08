@@ -22,12 +22,16 @@ function moveChildren(source, target) {
  * @param   {string} name - tag id
  * @param   {string} tmpl - tag template
  * @param   {Object} api - tag api containing its methods, store...
+ * @param   {Function} [constructor] - tag constructor.
  * @returns {riot.Tag} a riot.Tag class
  */
-function createTagClass(name, tmpl, api) {
+function createTagClass(name, tmpl, api, constructor) {
   const tagClass = class extends Tag {
     constructor(...args) {
       super(...args)
+      if (constructor) {
+        constructor.apply(this, args)
+      }
       Object.assign(this, api)
     }
     get name() { return `${name}-${COMPONENT_NAME_POSTFIX}` }
@@ -56,10 +60,18 @@ const callLifecycleMethod = (context, args, fn) => fn && fn.apply(context, args)
  * Create a new custom element using the riot core components
  * @param   {string} name - custom component tag name
  * @param   {Object} api - custom component api containing lifecycle methods and properties
- * @param   {Object} options - optional options that could be passed to customElements.define
+ * @param   {Object} [options] - optional options that could be passed to customElements.define
+ * @param   {Function} [constructor] - tag constructor.
  * @returns {undefined} it's a void method again ¯\_(ツ)_/¯
  */
-export default function define(name, api, options) {
+export default function define(name, api, options, constructor) {
+  if (!constructor) {
+    // decide the 3rd argument is options or constructor
+    if (Object.prototype.toString.call(options) === '[object Function]') {
+      constructor = options
+      options = undefined
+    }
+  }
   const {
     tmpl,
     css,
@@ -75,7 +87,7 @@ export default function define(name, api, options) {
   } = api
 
   // create the mount function only once
-  const mount = createTagClass(name, tmpl, rest)
+  const mount = createTagClass(name, tmpl, rest, constructor)
 
   // define the new custom element
   return customElements.define(name, class extends HTMLElement {
